@@ -11,8 +11,8 @@ time.sleep(0.5)
 
 
 # Функция, характеризующая и инициализирующая все серые (бомбы) модели
-def is_gray(r, g, b, threshold=23):  # Увеличим порог для более точного исключения серого
-    return abs(r - g) < threshold and abs(b - r) < threshold
+def is_gray(r, g, b, threshold=25):  # Увеличим порог для более точного исключения серого
+    return abs(r - g) < threshold and abs(g - b) < threshold
 
 
 def click(x, y):
@@ -90,6 +90,15 @@ while True:
     scrn = pyautogui.screenshot(region=(window_rect[0], window_rect[1], window_rect[2], window_rect[3]))
 
     width, height = scrn.size
+    center_x = width // 2
+    center_y = height // 2
+
+    # Определение границ поиска
+    x_min = max(center_x - 270, 0)
+    x_max = min(center_x + 270, width)
+    y_min = max(center_y - 250, 0)
+    y_max = min(center_y + 250, height)
+
     # Поиск зеленых и светло-голубых моделей
     for x in range(0, width, 20):
         for y in range(0, height, 20):
@@ -99,13 +108,23 @@ while True:
             if is_gray(r, g, b):
                 continue
 
-            # Проверка на зеленые объекты
+            # # Проверка на зеленые объекты
+            # if (r in range(102, 220)) and (g in range(200, 255) and (b in range(10, 80))):
+            #     screen_x = window_rect[0] + x
+            #     screen_y = window_rect[1] + y
+            #     click(screen_x + 4, screen_y)
+            #     time.sleep(0.05)
+            #     break
+            # Исключение серых оттенков
             if (r in range(102, 220)) and (g in range(200, 255) and (b in range(10, 80))):
-                screen_x = window_rect[0] + x
-                screen_y = window_rect[1] + y
-                click(screen_x + 4, screen_y)
-                time.sleep(0.05)
-                break
+                if not (abs(r - g) < 40 and abs(g - b) < 40):
+                    # Исключение белых оттенков
+                    if not (r > 200 and g > 200 and b > 200):
+                        screen_x = window_rect[0] + x
+                        screen_y = window_rect[1] + y
+                        click(screen_x + 4, screen_y)
+                        time.sleep(0.04)
+                        break
 
             if freeze <= 3:
                 # Проверка на светло-голубые объекты
@@ -113,7 +132,7 @@ while True:
                     screen_x = window_rect[0] + x
                     screen_y = window_rect[1] + y
                     click(screen_x + 4, screen_y)
-                    time.sleep(0.05)
+                    time.sleep(0.04)
                     last_found_time = time.time()
                     freeze += 1
                     break
@@ -129,7 +148,7 @@ while True:
                 if r > 240 and g > 240 and b > 240:  # Условия для белого цвета
                     screen_x = window_rect[0] + x
                     screen_y = window_rect[1] + y
-                    click(screen_x - 6, screen_y - 7)
+                    click(screen_x - 6, screen_y - 13)
                     time.sleep(0.001)
                     timer_start_time = time.time()
                     pixel_found = True
