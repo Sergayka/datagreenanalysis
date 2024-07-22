@@ -1,4 +1,3 @@
-from pyautogui import *
 import pygetwindow as gw
 import pyautogui
 import time
@@ -11,7 +10,7 @@ time.sleep(0.5)
 
 
 # Функция характеризующая и инициализирующая все серые (бомбы) модели
-def is_gray(r, g, b, threshold=20):  # Увеличен порог до 20
+def is_gray(r, g, b, threshold=23):  # Увеличен порог до 20
     return abs(r - g) < threshold and abs(b - r) < threshold
 
 
@@ -36,7 +35,7 @@ telegram_window = check[0]
 paused = False
 start_timer = False
 timer_start_time = None
-timer_expired = False
+freeze = 0
 
 while True:
     if keyboard.is_pressed('q'):
@@ -80,32 +79,29 @@ while True:
                     continue
 
                 # Проверка на зеленые объекты
-                if (b in range(0, 125)) and (r in range(102, 220)) and (g in range(200, 255)):
+                if (r in range(102, 220)) and (g in range(200, 255) and (b in range(10, 80))):
                     screen_x = window_rect[0] + x
                     screen_y = window_rect[1] + y
                     click(screen_x + 4, screen_y)
-                    time.sleep(0.001)
-                    pixel_found = True
-                    last_found_time = time.time()
+                    time.sleep(0.05)
                     break
 
-                # Проверка на светло-голубые объекты
-                if (r in range(100, 175)) and (g in range(200, 255)) and (b in range(200, 255)):
-                    screen_x = window_rect[0] + x
-                    screen_y = window_rect[1] + y
-                    click(screen_x + 4, screen_y)
-                    time.sleep(0.001)
-                    pixel_found = True
-                    last_found_time = time.time()
-                    break
+                if freeze <= 3:
+                    # Проверка на светло-голубые объекты
+                    if (r in range(125, 175)) and (g in range(200, 255)) and (b in range(200, 255)):
+                        screen_x = window_rect[0] + x
+                        screen_y = window_rect[1] + y
+                        click(screen_x + 4, screen_y)
+                        time.sleep(0.05)
+                        last_found_time = time.time()
+                        freeze += 1
+                        break
 
-    # Проверка, прошло ли 60 секунд после начала сессии
-    if (time.time() - timer_start_time >= 60):
-        timer_expired = True
-        print('[✅] | 60sec прошло, начинаем поиск кнопки')
-
+        # Проверка, прошло ли n секунд после начала сессии
+    if start_timer and (time.time() - timer_start_time >= 30):
+        print("поиск")
         for x in range(0, width, 20):
-            for y in range(8 * height // 10, height, 20):  # Нижние 10% экрана
+            for y in range(8 * height // 10, height, 20):
                 r, g, b = scrn.getpixel((x, y))
                 # Проверка на белую кнопку
                 if r > 240 and g > 240 and b > 240:  # Условия для белого цвета
@@ -115,9 +111,7 @@ while True:
                     time.sleep(0.001)
                     timer_start_time = time.time()
                     pixel_found = True
-                    print('[✅] | Белая кнопка была найдена')
+                    print('[✅] | игра')
                     break
-            if pixel_found:
-                break
 
 print('[✅] | Остановлено.')
